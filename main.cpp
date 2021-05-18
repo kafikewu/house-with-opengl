@@ -41,22 +41,29 @@ float boxScaleFactor = 1;
 float tyreScaleFactor = 1;
 float tinyBoxAngle = 0;
 float background = 0;
-float windowAngle = 1;
+float windowAngle = 0;
 float doorOpened = 0;
-
+float houseScale = 1;
+float houseAngle = 0;
+int FanRotate = 0; ///0 stop 1 clockwise 2 anti
+int DoorRotate = 0; /// 0 -> freeze 1-> Open 2-> close
+float WindowOpenFactor = 0;
+int WindowOpen = 0; /// 0 -> freeze 1->Slide up 2-> slide down
 Point pos, u, r, l;
-
+using namespace std;
 void windowAngleChanger(int angle)
 {
+    cout<<windowAngle<<endl;
     windowAngle += angle;
     if(windowAngle >= 0)
     {
-        windowAngle = -1;
+        windowAngle = 0;
     }
     else if(windowAngle <= -180)
     {
-        windowAngle = -179;
+        windowAngle = -180;
     }
+
 }
 
 void displayAxes()
@@ -97,6 +104,39 @@ Point func(Point vect, Point perp, int dir)
     point.y /= c;
     point.z /= c;
     return point;
+}
+
+void doorOpenFunction(int val)
+{
+    if(doorOpened + val >= 70)
+    {
+        doorOpened = 70;
+    }
+    else if(doorOpened + val <= 0)
+    {
+        doorOpened = 0;
+    }
+    else
+    {
+        doorOpened += val;
+    }
+}
+
+void windowSlideFunction(int val)
+{
+    if(WindowOpenFactor + val >= 76)
+    {
+        WindowOpenFactor = 76;
+    }
+    else if(WindowOpenFactor + val <= 0)
+    {
+        WindowOpenFactor = 0;
+    }
+    else
+    {
+        WindowOpenFactor += val;
+    }
+
 }
 
 void keyboardListener(unsigned char key, int x,int y){
@@ -147,17 +187,31 @@ void keyboardListener(unsigned char key, int x,int y){
             break;
         }
         case '9':{
-            std::cout<<windowAngle<<std::endl;
+            //std::cout<<windowAngle<<std::endl;
             windowAngleChanger(5);
             break;
         }
         case '0':{
-            std::cout<<windowAngle<<std::endl;
+
             windowAngleChanger(-5);
+            //std::cout<<windowAngle<<std::endl;
             break;
         }
         case 'l':{
-            tyreAngle += 5;
+            houseAngle += 5;
+            break;
+        }
+        case 'r':{
+            houseAngle -= 5;
+            break;
+        }
+        case 'u':{
+            houseScale += 0.1;
+            break;
+        }
+        case 'd':{
+            houseScale -= 0.1;
+            break;
         }
 		default:
 			break;
@@ -226,13 +280,14 @@ void specialKeyListener(int key, int x,int y){
 
 		case GLUT_KEY_HOME:
 		    {
-		        doorOpened += 5;
+		        doorOpenFunction(5);
+		        //doorOpened += 5;
 		        break;
 		    }
 
         case GLUT_KEY_END:
             {
-                doorOpened -= 5;
+                doorOpenFunction(-5);
                 break;
             }
 
@@ -332,13 +387,13 @@ void displayQuad(float quadLength, float quadWidth, bool gradient) // width alon
         //glVertex3f(-halfQuadWidth, 0, halfQuadLength);
 
         /** Gradient Fill Quad **/
-        (gradient) ? glColor3f(1, 1, 0) : glColor3f(0, 1, 1);
+        (gradient) ? glColor3f(0, 0, 1) : glColor3f(1, 1, 1);
 
 
         glVertex3f(halfQuadWidth, 0, halfQuadLength);
         glVertex3f(halfQuadWidth, 0, -halfQuadLength);
 
-        (!gradient) ? glColor3f(1, 1, 0) : glColor3f(0, 1, 1);
+        (!gradient) ? glColor3f(0, 0, 1) : glColor3f(1, 1, 1);
 
         glVertex3f(-halfQuadWidth, 0, -halfQuadLength);
         glVertex3f(-halfQuadWidth, 0, halfQuadLength);
@@ -419,7 +474,9 @@ void displayScene()
 
     /**/
 
-
+    //glScalef(1, 1, houseScale);
+    glRotatef(houseAngle, 0, 1, 0);
+    glScalef(houseScale, houseScale, houseScale);
     glPushMatrix();
     //glRotatef();
     glTranslatef(0, 0, largeBoxHeight/2);
@@ -433,33 +490,52 @@ void displayScene()
     glPushMatrix();
     //glRotatef();
     glTranslatef(0,0, largeBoxHeight + house[2]/2);
-    float house_param[3][3] = {{1,0,0}, {0.7,0,0}, {1,0,0}};
+    float house_param[3][3] = {{0.7529,0,0}, {0.5,0,0}, {1,0,0}};
     BoxColors houseColor(house_param);
     displayBox(house[0], house[1], house[2], houseColor);
     glPopMatrix();
 
     int window[3] = {1, 76, 76};
     glPushMatrix();
+    glTranslated(0, 0, WindowOpenFactor);
     glTranslatef(house[0]/2 + 1,window[1]/2, largeBoxHeight + house[2]/2 + window[2]/2);
-    glRotatef(windowAngle, 0,1,0);
+
+    if(WindowOpen == 0)
+    {
+        glRotatef(windowAngle, 0,1,0);
+    }
     glTranslatef(0, -window[1]/2, -window[2]/2);
     float window_param[3][3] = {{0.9,0.9,0}, {0.7,0.7,0}, {0.5,0.5,0}};
     BoxColors windowColor(window_param);
     displayBox(window[0], window[1], window[2], windowColor);
     glPopMatrix();
 
-    int rim[3] = {1, 76, 10};
+    int rim[3] = {6, 76, 10};
     glPushMatrix();
     //glRotatef();
     glTranslatef(house[0]/2 + 1,0, largeBoxHeight + house[2]/2 + window[2]/2 + rim[2]/2);
-    float rim_param[3][3] = {{1,1,0}, {0.5,0.5,0}, {0.5,0.7,0}};
+    float rim_param[3][3] = {{0,0.75,0.75}, {0,0.5,0.5}, {0,0.25,0.25}};
     BoxColors rimColor(rim_param);
     displayBox(rim[0], rim[1], rim[2], rimColor);
     glPopMatrix();
-
+    ///Window
     glPushMatrix();
     glTranslatef(-house[0]/2 - 1,window[1]/2, largeBoxHeight + house[2]/2 + window[2]/2);
     glRotatef(-windowAngle, 0,1,0);
+    glTranslatef(0, -window[1]/2, -window[2]/2);
+    //float window_param[3][3] = {{0.9,0.9,0}, {0.7,0.7,0}, {0.5,0.5,0}};
+    //BoxColors windowColor(window_param);
+    displayBox(window[0], window[1], window[2], windowColor);
+    glPopMatrix();
+
+
+    glPushMatrix();
+    glTranslated(0, 0, WindowOpenFactor);
+    glTranslatef(house[0]/2 + 1,window[1]/2, largeBoxHeight + house[2]/2 + window[2]/2);
+    if(WindowOpen == 0)
+    {
+        glRotatef(-windowAngle, 0,1,0);
+    }
     glTranslatef(0, -window[1]/2, -window[2]/2);
     //float window_param[3][3] = {{0.9,0.9,0}, {0.7,0.7,0}, {0.5,0.5,0}};
     //BoxColors windowColor(window_param);
@@ -479,7 +555,7 @@ void displayScene()
     glPushMatrix();
     //glRotatef();
     glTranslatef(0,0, largeBoxHeight + house[2] + ceiling[2]/2);
-    float ceiling_param[3][3] = {{0,1,0}, {0,0.5,0}, {0,0.7,0}};
+    float ceiling_param[3][3] = {{0,1,0}, {0,0.5,0}, {0,0.25,0}};
     BoxColors ceilingColor(ceiling_param);
     displayBox(ceiling[0], ceiling[1], ceiling[2], ceilingColor);
     glPopMatrix();
@@ -507,7 +583,7 @@ void displayScene()
     glPushMatrix();
     //glRotatef();
     glTranslatef(0,0, lowerStairs[2] + middleStairs[2]/2);
-    float middleStairs_param[3][3] = {{0.66,0.66,0.66}, {0.5,0.5,0.5}, {0.3,0.3,0.3}};
+    float middleStairs_param[3][3] = {{0,0.752,0.737}, {0,0.5,0.5}, {0,0.25,0.25}};
     BoxColors middleStairsColor(middleStairs_param);
     displayBox(middleStairs[0], middleStairs[1], middleStairs[2], middleStairsColor);
     glPopMatrix();
@@ -516,7 +592,7 @@ void displayScene()
     glPushMatrix();
     //glRotatef();
     glTranslatef(0,0, lowerStairs[2] + middleStairs[2] + upperStairs[2]/2);
-    float upperStairs_param[3][3] = {{0.66,0.66,0.66}, {0.5,0.5,0.5}, {0.3,0.3,0.3}};
+    float upperStairs_param[3][3] = {{0.77,0.77,0}, {0.5,0.5,0}, {0.25,0.25,0}};
     BoxColors upperStairsColor(upperStairs_param);
     displayBox(upperStairs[0], upperStairs[1], upperStairs[2], upperStairsColor);
     glPopMatrix();
@@ -583,15 +659,36 @@ void displayScene()
     glPopMatrix();
     glPopMatrix();
 
-
+    int door_rim[3] = {quadWidth*2, 10, 10};
     glPushMatrix();
-    glTranslatef(-(quadWidth/2)-doorOpened, house[1]/2 + 1, largeBoxHeight + quadLength/2);
+    //glRotatef();
+    glTranslatef(0, house[1]/2 + 1, largeBoxHeight + quadLength);
+    float door_rim_param[3][3] = {{0,0.75,0.75}, {0,0.5,0.5}, {0,0.25,0.25}};
+    BoxColors DoorrimColor(door_rim_param);
+    displayBox(door_rim[0], door_rim[1], door_rim[2], DoorrimColor);
+    glPopMatrix();
+
+    ///Front Door
+    glPushMatrix();
+    glTranslatef((-quadWidth-doorOpened)/2, house[1]/2 + 1, largeBoxHeight + quadLength/2);
     //glRotatef(90, 0, 0, 1);
     displayQuad(quadLength, quadWidth, false);
     glPopMatrix();
 
     glPushMatrix();
     glTranslatef((quadWidth+doorOpened)/2, house[1]/2 + 1, largeBoxHeight + quadLength/2);
+    //glRotatef(90, 0, 0, 1);
+    displayQuad(quadLength, quadWidth, true);
+    glPopMatrix();
+    ///Back Door
+    glPushMatrix();
+    glTranslatef((-quadWidth-doorOpened)/2, -house[1]/2 - 1, largeBoxHeight + quadLength/2);
+    //glRotatef(90, 0, 0, 1);
+    displayQuad(quadLength, quadWidth, false);
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef((quadWidth+doorOpened)/2, -house[1]/2 - 1, largeBoxHeight + quadLength/2);
     //glRotatef(90, 0, 0, 1);
     displayQuad(quadLength, quadWidth, true);
     glPopMatrix();
@@ -621,6 +718,49 @@ void display(){
 
 
 void animate(){
+    if(FanRotate == 2)
+    {
+        tyreAngle += 0.2;
+    }
+    else if(FanRotate == 3)
+    {
+        tyreAngle -= 0.2;
+    }
+    if(DoorRotate == 1)
+    {
+        doorOpenFunction(1);
+        if(doorOpened == 70)
+        {
+            DoorRotate = 0;
+        }
+    }
+    else if(DoorRotate == 2)
+    {
+        doorOpenFunction(-1);
+        if(doorOpened == 0)
+        {
+            DoorRotate = 0;
+        }
+    }
+    if(WindowOpen == 1)
+    {
+        windowSlideFunction(2);
+        windowAngleChanger(-5);
+        if(WindowOpenFactor >= 76)
+        {
+            WindowOpen = 3;
+            //windowAngle = 0;
+        }
+    }
+    else if(WindowOpen == 2)
+    {
+        windowSlideFunction(-2);
+        windowAngleChanger(5);
+        if(WindowOpenFactor <= 0)
+        {
+            WindowOpen = 3;
+        }
+    }
     tinyBoxAngle += 0.05;
 	glutPostRedisplay();
 }
@@ -651,17 +791,62 @@ void subMenu(int id)
     {
         background = 0;
     }
+    else if(id == 1)
+    {
+        background= 0.5;
+    }
+    else if(id == 2)
+    {
+        background = 0.3;
+    }
 }
 
 void mainMenu(int id)
 {
+    if(id == 8)
+    {
+        houseScale = 1;
+    }
+}
+
+void SlidingWindow(int id)
+{
     if(id == 1)
     {
-        drawAxes = true;
+
+        WindowOpen = 1;
+        //windowAngle = 180;
     }
     else if(id == 2)
     {
-        drawAxes = false;
+        WindowOpen = 2;
+        //windowAngle = 0;
+    }
+}
+void RotatingDoor(int id)
+{
+    if(id == 3)
+    {
+       DoorRotate = 1;
+    }
+    else if(id == 4)
+    {
+        DoorRotate = 2;
+    }
+}
+void ExhaustFan(int id)
+{
+    if(id == 5)
+    {
+        FanRotate = 2;
+    }
+    else if(id == 6)
+    {
+        FanRotate = 3;
+    }
+    else if(id == 7)
+    {
+        FanRotate = 1;
     }
 }
 
@@ -683,14 +868,25 @@ int main(int argc, char **argv){
 	glutSpecialFunc(specialKeyListener);
 	glutMouseFunc(mouseListener);
 
-	int subMenuNo = glutCreateMenu(subMenu);
-    glutAddMenuEntry("White", 3);
-	glutAddMenuEntry("Black", 4);
+	int subMenuNo = glutCreateMenu(SlidingWindow);
+    glutAddMenuEntry("Slide Up", 1);
+	glutAddMenuEntry("Slide Down", 2);
+
+    int subMenu2 = glutCreateMenu(RotatingDoor);
+	glutAddMenuEntry("Open", 3);
+	glutAddMenuEntry("Close", 4);
+	//glutAddSubMenu("Background", subMenuNo);
+    int subMenu3 = glutCreateMenu(ExhaustFan);
+	glutAddMenuEntry("Clockwise", 5);
+	glutAddMenuEntry("Anti-Clockwise", 6);
+	glutAddMenuEntry("Stop", 7);
 
     glutCreateMenu(mainMenu);
-	glutAddMenuEntry("Axes On", 1);
-	glutAddMenuEntry("Axes Off", 2);
-	glutAddSubMenu("Background", subMenuNo);
+	glutAddSubMenu("Sliding Window", subMenuNo);
+	glutAddSubMenu("Rotating Door", subMenu2);
+	glutAddSubMenu("Exhaust Fan", subMenu3);
+    glutAddMenuEntry("Original Size", 8);
+
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
 
 	glutMainLoop();		//The main loop of OpenGL, this function never returns
