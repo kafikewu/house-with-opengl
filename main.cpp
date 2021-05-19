@@ -49,6 +49,8 @@ int FanRotate = 0; ///0 stop 1 clockwise 2 anti
 int DoorRotate = 0; /// 0 -> freeze 1-> Open 2-> close
 float WindowOpenFactor = 0;
 int WindowOpen = 0; /// 0 -> freeze 1->Slide up 2-> slide down
+int doorOpenedAngle = 0;
+
 Point pos, u, r, l;
 using namespace std;
 void windowAngleChanger(int angle)
@@ -64,6 +66,19 @@ void windowAngleChanger(int angle)
         windowAngle = -180;
     }
 
+}
+
+void rotateDoor(int val)
+{
+    doorOpenedAngle += val;
+    if(doorOpenedAngle >= 90)
+    {
+        doorOpenedAngle = 90;
+    }
+    else if(doorOpenedAngle <= 0)
+    {
+        doorOpenedAngle = 0;
+    }
 }
 
 void displayAxes()
@@ -463,16 +478,6 @@ void displayScene()
 
     displayAxes();
 
-    /**/
-
-    /** Quad **/
-
-    //glRotatef(quadAngle, 1, 0, 0); // rotates with respect to x axis
-    //glRotatef(quadAngle, 0, 1, 0); // rotates with respect to y axis
-    //glRotatef(quadAngle, 0, 0, 1); // rotates with respect to z axis//
-    //displayQuad(quadLength, quadWidth);
-
-    /**/
 
     //glScalef(1, 1, houseScale);
     glRotatef(houseAngle, 0, 1, 0);
@@ -604,27 +609,21 @@ void displayScene()
 
     glPushMatrix();
     //glTranslatef(0,fanHolder[1]/2 + tyreWidth/2,largeBoxHeight + house[2] + ceiling[2] + fanHolder[2]/2);
+    glScalef(tyreScaleFactor, tyreScaleFactor, tyreScaleFactor);
     glRotatef(90, 0,0,1);
     displayTyre(tyreRadius, tyreWidth);
     glPopMatrix();
 
-    /*int window[3] = {1, 76, 76};
-    glPushMatrix();
-    glTranslatef(house[0]/2 + 1,window[1]/2, largeBoxHeight + house[2]/2 + window[2]/2);
-    glRotatef(windowAngle, 0,1,0);
-    glTranslatef(0, -window[1]/2, -window[2]/2);
-    float window_param[3][3] = {{0.9,0.9,0}, {0.7,0.7,0}, {0.5,0.5,0}};
-    BoxColors windowColor(window_param);
-    displayBox(window[0], window[1], window[2], windowColor);
-    glPopMatrix();*/
 
     glPushMatrix();
     //glTranslatef(0,fanHolder[1]/2 + tyreWidth/2,largeBoxHeight + house[2] + ceiling[2] + fanHolder[2]/2);
+    glScalef(tyreScaleFactor, tyreScaleFactor, tyreScaleFactor);
     glRotatef(90, 0,0,1);
     displayTyre(smallerTyreRadius, tyreWidth);
     glPopMatrix();
 
     glPushMatrix();
+    glScalef(tyreScaleFactor, tyreScaleFactor, tyreScaleFactor);
     //glTranslatef(0,fanHolder[1]/2 + tyreWidth/2, largeBoxHeight + house[2] + ceiling[2] + fanHolder[2]/2);
     glRotatef(90, 0, 0, 1);
     int tyreSlices = 10;
@@ -668,37 +667,38 @@ void displayScene()
     displayBox(door_rim[0], door_rim[1], door_rim[2], DoorrimColor);
     glPopMatrix();
 
+
     ///Front Door
     glPushMatrix();
-    glTranslatef((-quadWidth-doorOpened)/2, house[1]/2 + 1, largeBoxHeight + quadLength/2);
+    glTranslatef(((-quadWidth-doorOpened)/2) - quadWidth/2, house[1]/2 + 1, largeBoxHeight + quadLength/2);
     //glRotatef(90, 0, 0, 1);
+    glRotatef(doorOpenedAngle, 0, 0, 1);
+    glTranslatef((quadWidth)/2, 0, 0);
     displayQuad(quadLength, quadWidth, false);
     glPopMatrix();
 
     glPushMatrix();
-    glTranslatef((quadWidth+doorOpened)/2, house[1]/2 + 1, largeBoxHeight + quadLength/2);
+    glTranslatef((quadWidth+doorOpened)/2  + quadWidth/2, house[1]/2 + 1, largeBoxHeight + quadLength/2);
     //glRotatef(90, 0, 0, 1);
+    glRotatef(-doorOpenedAngle, 0, 0, 1);
+    glTranslatef(-(quadWidth)/2, 0, 0);
     displayQuad(quadLength, quadWidth, true);
     glPopMatrix();
     ///Back Door
     glPushMatrix();
-    glTranslatef((-quadWidth-doorOpened)/2, -house[1]/2 - 1, largeBoxHeight + quadLength/2);
-    //glRotatef(90, 0, 0, 1);
+    glTranslatef((-quadWidth-doorOpened)/2 - quadWidth/2, -house[1]/2 - 1, largeBoxHeight + quadLength/2);
+    glRotatef(-doorOpenedAngle, 0, 0, 1);
+    glTranslatef((quadWidth)/2, 0, 0);
     displayQuad(quadLength, quadWidth, false);
     glPopMatrix();
 
     glPushMatrix();
-    glTranslatef((quadWidth+doorOpened)/2, -house[1]/2 - 1, largeBoxHeight + quadLength/2);
-    //glRotatef(90, 0, 0, 1);
+    glTranslatef((quadWidth+doorOpened)/2 + quadWidth/2, -house[1]/2 - 1, largeBoxHeight + quadLength/2);
+    glRotatef(doorOpenedAngle, 0, 0, 1);
+    glTranslatef(-(quadWidth)/2, 0, 0);
     displayQuad(quadLength, quadWidth, true);
     glPopMatrix();
 
-    //lPushMatrix();
-    //glRotatef(tinyBoxAngle, 0, 0, 1); // angle is updated in animate function
-    //glTranslatef(250, 40, 50);
-
-    //displayBox(tinyBoxLength, tinyBoxWidth, tinyBoxHeight, Floor);
-    //glPopMatrix();
 }
 
 void display(){
@@ -728,19 +728,21 @@ void animate(){
     }
     if(DoorRotate == 1)
     {
-        doorOpenFunction(1);
+        rotateDoor(1);
+        /*doorOpenFunction(1);
         if(doorOpened == 70)
         {
             DoorRotate = 0;
-        }
+        }*/
     }
     else if(DoorRotate == 2)
     {
-        doorOpenFunction(-1);
+        rotateDoor(-1);
+        /*doorOpenFunction(-1);
         if(doorOpened == 0)
         {
             DoorRotate = 0;
-        }
+        }*/
     }
     if(WindowOpen == 1)
     {
