@@ -55,7 +55,6 @@ Point pos, u, r, l;
 using namespace std;
 void windowAngleChanger(int angle)
 {
-    cout<<windowAngle<<endl;
     windowAngle += angle;
     if(windowAngle >= 0)
     {
@@ -228,6 +227,22 @@ void keyboardListener(unsigned char key, int x,int y){
             houseScale -= 0.1;
             break;
         }
+        case 'L':{
+            houseAngle += 5;
+            break;
+        }
+        case 'R':{
+            houseAngle -= 5;
+            break;
+        }
+        case 'U':{
+            houseScale += 0.1;
+            break;
+        }
+        case 'D':{
+            houseScale -= 0.1;
+            break;
+        }
 		default:
 			break;
 	}
@@ -241,7 +256,7 @@ void specialKeyListener(int key, int x,int y){
 		        pos.y = pos.y - l.y*2;
 		        pos.z = pos.z - l.z*2;
 
-		        printf("Quad Angle %f\n", quadAngle);
+		        //printf("Quad Angle %f\n", quadAngle);
 		        break;
 		    }
 
@@ -251,7 +266,7 @@ void specialKeyListener(int key, int x,int y){
 		        pos.y = pos.y + l.y*2;
 		        pos.z = pos.z + l.z*2;
 		        //quadAngle -= 5;
-		        printf("Quad Angle %f\n", quadAngle);
+		        //printf("Quad Angle %f\n", quadAngle);
 		        break;
 		    }
 
@@ -261,7 +276,7 @@ void specialKeyListener(int key, int x,int y){
 		        pos.y = pos.y + r.y*2;
 		        pos.z = pos.z + r.z*2;
 		        //boxAngle += 5;
-		        printf("Box Angle %f\n", boxAngle);
+		        //printf("Box Angle %f\n", boxAngle);
 		        break;
 		    }
 
@@ -271,7 +286,7 @@ void specialKeyListener(int key, int x,int y){
 		        pos.y = pos.y - r.y*2;
 		        pos.z = pos.z - r.z*2;
 		        //boxAngle -= 5;
-		        printf("Box Angle %f\n", boxAngle);
+		        //printf("Box Angle %f\n", boxAngle);
 		        break;
 		    }
 
