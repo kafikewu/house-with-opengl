@@ -1,1 +1,1 @@
-#This project builds a house with OpenGL
+# This project builds a house with OpenGL
